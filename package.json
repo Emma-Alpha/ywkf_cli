@@ -1,6 +1,6 @@
 {
   "name": "@4399ywkf/cli",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "运维开发部脚手架",
   "main": "index.js",
   "bin": {
