@@ -5,10 +5,26 @@ const path = require("path")
 const downloadGitRepo = require('download-git-repo')
 const ora = require('ora') // 引入ora
 const fs = require('fs-extra')
+const { exec } = require('child_process');
 
 // const templates = require("./templates.js")
 const { getGitReposList } = require('./api.js')
 const package = require("../package.json")
+
+
+function cloneRepository(repoUrl, destination) {
+  return new Promise((resolve, reject) => {
+    const command = `git clone ${repoUrl} ${destination}`;
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        reject(`Error cloning repository: ${stderr}`);
+      } else {
+        resolve(`Repository cloned successfully: ${stdout}`);
+      }
+    });
+  });
+}
+
 
 program
   .command("create [projectName]")
@@ -17,13 +33,19 @@ program
   .action(async (projectName, options) => {
     const getRepoLoading = ora('获取模版列表...')
     getRepoLoading.start()
-    const templates = await getGitReposList('guojiongwei')
+    // const templates = await getGitReposList('Emma-Alpha')
+    const templates = [
+      {
+        value: "https://ywgit.gz4399.com/ywkf/subApplicate_demo.git",
+        name: "subApplicate_demo"
+      }
+    ]
+
     getRepoLoading.succeed('获取模版列表成功!')
     // 1. 从模版列表中找到对应的模版
     let project = templates.find(template => template.name === options.template)
     // 2. 如果匹配到模版就赋值，没有匹配到就是undefined
     let projectTemplate = project ? project.value : undefined
-    // console.log('命令行参数：', projectName, projectTemplate) 
 
     // 3. // 如果用户没有传入名称就交互式输入
     if(!projectName) {
@@ -37,7 +59,7 @@ program
     console.log('项目名称：', projectName)
 
     // 4. 如果用户没有传入模版就交互式输入
-    if(!projectTemplate) { 
+    if(!projectTemplate) {
       const { template } = await inquirer.prompt({
         type: 'list',
         name: 'template',
@@ -65,16 +87,26 @@ program
     const loading = ora('正在下载模版...')
     loading.start()
     // 5. 开始下载模版
-    downloadGitRepo(projectTemplate, dest, (err) => {
-      if (err) {
-        loading.fail('创建模版失败：' + err) // 失败loading
-      } else {
-        loading.succeed('创建模版成功!') // 成功loading
-        console.log(`\ncd ${projectName}`)
-        console.log('npm i')
-        console.log('npm start\n')
-      }
-    })
+    try {
+      const result = await cloneRepository(projectTemplate, dest);
+      loading.succeed('创建模版成功!') // 成功loading
+      console.log(`\ncd ${projectName}`)
+      console.log('npm i')
+      console.log('npm start\n')
+    } catch (error) {
+      loading.fail('创建模版失败：' + error) // 失败loading
+    }
+
+    // downloadGitRepo(projectTemplate, dest, (err) => {
+    //   if (err) {
+    //     loading.fail('创建模版失败：' + err) // 失败loading
+    //   } else {
+    //     loading.succeed('创建模版成功!') // 成功loading
+    //     console.log(`\ncd ${projectName}`)
+    //     console.log('npm i')
+    //     console.log('npm start\n')
+    //   }
+    // })
   })
 
 // 定义当前版本

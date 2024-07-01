@@ -1,26 +1,23 @@
 {
-  "name": "wuyou-cli",
-  "version": "1.1.1",
-  "description": "学习搭建cli脚手架",
+  "name": "ywkf-cli",
+  "version": "0.0.1",
+  "description": "运维开发部脚手架",
   "main": "index.js",
   "bin": {
-    "wuyou-cli": "./bin/cli.js"
+    "ywkf-cli": "./bin/cli.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/guojiongwei/wuyou-cli.git"
+    "url": "git+https://github.com/Emma-Alpha/ywkf-cli.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/guojiongwei/wuyou-cli/issues"
-  },
-  "homepage": "https://github.com/guojiongwei/wuyou-cli#readme",
   "dependencies": {
+    "child_process": "^1.0.2",
     "commander": "^10.0.1",
     "download-git-repo": "^3.0.2",
     "fs-extra": "^11.1.1",
