@@ -131,8 +131,8 @@ program
       const result = await cloneRepository(projectTemplate, dest);
       loading.succeed('创建模版成功!') // 成功loading
       console.log(`\ncd ${projectName}`)
-      console.log('npm i')
-      console.log('npm start\n')
+      console.log('pnpm i')
+      console.log('pnpm start\n')
     } catch (error) {
       loading.fail('创建模版失败：' + error) // 失败loading
     }
