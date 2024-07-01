@@ -2,7 +2,6 @@
 const program = require("commander")
 const inquirer = require("inquirer")
 const path = require("path")
-const downloadGitRepo = require('download-git-repo')
 const ora = require('ora') // 引入ora
 const fs = require('fs-extra')
 const { exec } = require('child_process');
@@ -10,7 +9,6 @@ const { exec } = require('child_process');
 // const templates = require("./templates.js")
 const { getGitReposList } = require('./api.js')
 const package = require("../package.json")
-
 
 function cloneRepository(repoUrl, destination) {
   return new Promise((resolve, reject) => {
@@ -25,7 +23,6 @@ function cloneRepository(repoUrl, destination) {
   });
 }
 
-
 program
   .command("create [projectName]")
   .description("创建模版")
@@ -34,21 +31,41 @@ program
     const getRepoLoading = ora('获取模版列表...')
     getRepoLoading.start()
     // const templates = await getGitReposList('Emma-Alpha')
-    const templates = [
-      {
-        value: "https://ywgit.gz4399.com/ywkf/subApplicate_demo.git",
-        name: "subApplicate_demo"
+    const templates = {
+      webpack: {
+        main: [
+          {
+            value: "https://ywgit.gz4399.com/ywkf/webpack-mainApplicate_demo.git",
+            name: "webpack-mainApplicate_demo"
+          }
+        ],
+        sub: [
+          {
+            value: "https://ywgit.gz4399.com/ywkf/webpack-subApplicate_demo.git",
+            name: "webpack-subApplicate_demo"
+          }
+        ]
+      },
+      vite: {
+        main: [
+          {
+            value: "https://ywgit.gz4399.com/ywkf/vite-mainApplicate_demo.git",
+            name: "vite-mainApplicate_demo"
+          }
+        ],
+        sub: [
+          {
+            value: "https://ywgit.gz4399.com/ywkf/vite-subApplicate_demo",
+            name: "vite-subApplicate_demo"
+          }
+        ]
       }
-    ]
+    }
 
     getRepoLoading.succeed('获取模版列表成功!')
-    // 1. 从模版列表中找到对应的模版
-    let project = templates.find(template => template.name === options.template)
-    // 2. 如果匹配到模版就赋值，没有匹配到就是undefined
-    let projectTemplate = project ? project.value : undefined
 
-    // 3. // 如果用户没有传入名称就交互式输入
-    if(!projectName) {
+    // 1. 如果用户没有传入名称就交互式输入
+    if (!projectName) {
       const { name } = await inquirer.prompt({
         type: "input",
         name: "name",
@@ -58,22 +75,45 @@ program
     }
     console.log('项目名称：', projectName)
 
-    // 4. 如果用户没有传入模版就交互式输入
-    if(!projectTemplate) {
+    // 2. 选择工具类型
+    const { toolType } = await inquirer.prompt({
+      type: 'list',
+      name: 'toolType',
+      message: '请选择工具类型：',
+      choices: ['webpack', 'vite']
+    })
+    console.log('工具类型：', toolType)
+
+    // 3. 选择应用方向
+    const { appDirection } = await inquirer.prompt({
+      type: 'list',
+      name: 'appDirection',
+      message: '请选择应用方向：',
+      choices: ['main', 'sub']
+    })
+    console.log('应用方向：', appDirection)
+
+    // 4. 选择模版
+    let projectTemplate;
+    if (options.template) {
+      projectTemplate = templates[toolType][appDirection].find(template => template.name === options.template)?.value;
+    }
+
+    if (!projectTemplate) {
       const { template } = await inquirer.prompt({
         type: 'list',
         name: 'template',
         message: '请选择模版：',
-        choices: templates // 模版列表
+        choices: templates[toolType][appDirection]
       })
-      projectTemplate = template // 赋值选择的项目名称
+      projectTemplate = template; // 赋值选择的项目模板
     }
     console.log('模版：', projectTemplate)
 
     // 获取目标文件夹路径
     const dest = path.join(process.cwd(), projectName)
     // 判断文件夹是否存在，存在就交互询问用户是否覆盖
-    if(fs.existsSync(dest)) {
+    if (fs.existsSync(dest)) {
       const { force } = await inquirer.prompt({
         type: 'confirm',
         name: 'force',
@@ -96,20 +136,9 @@ program
     } catch (error) {
       loading.fail('创建模版失败：' + error) // 失败loading
     }
-
-    // downloadGitRepo(projectTemplate, dest, (err) => {
-    //   if (err) {
-    //     loading.fail('创建模版失败：' + err) // 失败loading
-    //   } else {
-    //     loading.succeed('创建模版成功!') // 成功loading
-    //     console.log(`\ncd ${projectName}`)
-    //     console.log('npm i')
-    //     console.log('npm start\n')
-    //   }
-    // })
   })
 
 // 定义当前版本
 program.version(`v${package.version}`)
-program.on('--help', () => {}) // 添加--help
+program.on('--help', () => { }) // 添加--help
 program.parse(process.argv)
